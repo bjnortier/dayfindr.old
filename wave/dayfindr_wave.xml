@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+      <Module>
+      <ModulePrefs title="State Example" height="120">
+      <Require feature="wave" /> 
+      </ModulePrefs>
+      <Content type="html">
+      <![CDATA[ 
+	       <div id="content_div" style="height: 50px;"></div>
+	 
+	       <script type="text/javascript">
+	       
+	       var div = document.getElementById('content_div');
+	       
+	       function buttonClicked() {
+		   var today = new Date();
+		   var attend = {};
+		   attend.year = today.getFullYear();
+		   attend.month = today.getMonth();
+		   attend.day = today.getDate();
+
+		   var viewerId = wave.getViewer().getId();
+		   var daysJSON = wave.getState().get(viewerId, '[]');
+		   var currentDays = JSON.parse(daysJSON);
+		   var newDays = new Array();
+		   var found = false;
+		   var copyIndex = 0;
+		   for(var i = 0; i < currentDays.length; ++i) {
+		       currentDay = currentDays[i];
+		       if (currentDay.day == attend.day
+			   &&
+			   currentDay.month == attend.month
+			   &&
+			   currentDay.year == attend.year) {
+		       } else {
+			   newDays[copyIndex] = currentDay;
+			   ++copyIndex;
+		       }
+		   }
+		   // If the result is the same length as the original,
+		   // the current day was not found so it must be appended
+		   if (copyIndex == currentDays.length) {
+		       newDays[copyIndex] = attend;
+		   }
+		   
+		   var checked = wave.getState().get(viewerId);
+		   var delta = {};
+		   delta[viewerId] = JSON.stringify(newDays);
+		   wave.getState().submitDelta(delta);
+	       }
+	       
+	       function stateUpdated() {
+		   
+		   var keys = wave.getState().getKeys();
+		   var newInner = '';
+		   for (var i = 0; i < keys.length; ++i) {
+		       newInner += keys[i] + ':' + wave.getState().get(keys[i]) + '<br>';
+		   }
+		   div.innerHTML = newInner;
+	       }
+ 
+	       function init() {
+		   if (wave && wave.isInWaveContainer()) {
+		       wave.setStateCallback(stateUpdated);
+		   }
+	       }
+	       gadgets.util.registerOnLoadHandler(init);
+
+	       </script>
+	       <input type=button value="Attend" id="butCount" onClick="buttonClicked()">
+		]]> 
+      </Content>
+      </Module>
