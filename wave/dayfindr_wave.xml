@@ -1,11 +1,16 @@
 <?xml version="1.0" encoding="UTF-8" ?> 
 <Module>
-<ModulePrefs title="State Example" height="120">
-    <Require feature="wave" /> 
-  </ModulePrefs>
+<ModulePrefs title="State Example" height="400" scrolling="true">
+<Require feature="wave" /> 
+</ModulePrefs>
 <Content type="html">
 <![CDATA[ 
 	 
+	 <style  TYPE="text/css">
+	 td.dayfindr {
+      border: solid thin black;
+      }
+	 </style>
 	 <div id="content_div" style="height: 50px;"></div>
 	 <script type="text/javascript">
 
@@ -40,7 +45,7 @@
 	   return 32 - new Date(year, month, 32).getDate();
 	 }
 
-	 function createCal(days) {
+	 function createMonthHTML(days) {
 
 	   var preSync = true;
 	   var postSync = false;
@@ -52,9 +57,9 @@
 	   for (var week = 0; (week < 6) && (numberOfDaysLeft > 0); ++week) {
 
 	     calHtml += '<tr>';
-	     for (var day = 0; day < 7; ++day) {
+	     for (var dayOfWeek = 0; dayOfWeek < 7; ++dayOfWeek) {
 
-	       var i = week*7 + day;
+	       var i = week*7 + dayOfWeek;
 	       if (preSync) {
 		 if (days[0].getDay() == i) {
 		   preSync = false;
@@ -71,7 +76,43 @@
 	       } else if (postSync) {
 		 calHtml += '<td>x</td>';
 	       } else {
-		 calHtml += '<td>' + days[i - dayOffset].getDate() + '</td>';
+		 var date = days[i - dayOffset];
+		 var year = date.getFullYear();
+		 var month = date.getMonth();
+		 var day = date.getDate();
+		 var onclick = 'dayClicked(' + year + ',' + month + ',' + day + ')';
+		 calHtml += '<td class="dayfindr"><a href="#" onclick="' + onclick + '">' + date.getDate() + '</a>';
+
+		 var keys = wave.getState().getKeys();
+		 var newInner = '';
+
+		 var dayStruct = {};
+		 dayStruct.year = year;
+		 dayStruct.month = month;
+		 dayStruct.day = day;
+		 
+		 for (var i = 0; i < keys.length; ++i) {
+		   var participantId = keys[i];
+		   var daysAttending = JSON.parse(wave.getState().get(participantId));
+		   
+		   wave.log(daysAttending + ':' + dayStruct);
+		   for (var j = 0; j < daysAttending.length; ++j) {
+		     if (daysAttending[j].year == year
+			 &&
+			 daysAttending[j].month == month
+			 &&
+			 daysAttending[j].day == day) {
+
+		       var participant = wave.getParticipantById(participantId);
+		       var thumbnailURL = participant.getThumbnailUrl();
+		       calHtml += '<img src="' + thumbnailURL + '" alt="' + participantId + '"/>';
+		       //calHtml += participantId + '<br>';
+		     }
+		   }
+		 }
+
+		 calHtml += '</td>';
+
 		 --numberOfDaysLeft;
 	       }
    
@@ -89,7 +130,7 @@
 	   var today = new Date();
 	   year = today.getFullYear();
 	   month = today.getMonth();
-	   for (var i = 0; i < 5; ++i) {
+	   for (var i = 0; i < 2; ++i) {
     
 	     var N = daysInMonth(year, month);
 	     var days = [];
@@ -97,8 +138,8 @@
 	       days[d] = new Date(year, month, d + 1);
 	     }
 
-	     monthHtml = createCal(days);
-	     calendarHtml += monthHtml;
+	     calendarHtml += '<div>' + year + '.' + (month + 1) + ' </div>';
+	     calendarHtml += createMonthHTML(days);
 	   
 	     var nextYearAndMonth = getNextYearAndMonth(year, month);
 	     year = nextYearAndMonth[0];
@@ -110,13 +151,13 @@
 	 }
 	 
 	 var div = document.getElementById('content_div');
-	 
-	 function buttonClicked() {
-	   var today = new Date();
+
+	 function dayClicked(year, month, day) {
+
 	   var attend = {};
-	   attend.year = today.getFullYear();
-	   attend.month = today.getMonth();
-	   attend.day = today.getDate();
+	   attend.year = year;
+	   attend.month = month;
+	   attend.day = day;
 	   
 	   var viewerId = wave.getViewer().getId();
 	   var daysJSON = wave.getState().get(viewerId, '[]');
@@ -149,25 +190,19 @@
 	 }
 	       
 	 function stateUpdated() {
-		   
-	   var keys = wave.getState().getKeys();
-	   var newInner = '';
-	   for (var i = 0; i < keys.length; ++i) {
-	     newInner += keys[i] + ':' + wave.getState().get(keys[i]) + '<br>';
-	   }
-	   div.innerHTML = div.innerHTML + newInner;
+	   div.innerHTML = createCalendarHTML();
+	   //gadgets.window.adjustHeight();
 	 }
  
 	 function init() {
 	   if (wave && wave.isInWaveContainer()) {
 	     wave.setStateCallback(stateUpdated);
 	   }
-	   div.innerHTML = createCalendarHTML();
 	 }
 	 gadgets.util.registerOnLoadHandler(init);
 
 	 </script>
-	 <input type=button value="Attend" id="butCount" onClick="buttonClicked()">
+	 
 	  ]]> 
 
   </Content>
