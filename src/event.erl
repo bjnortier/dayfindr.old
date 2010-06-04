@@ -37,8 +37,19 @@ body() ->
     ].
 
 script() ->
+    Client = riak_client(),
+    {ok, Keys} = Client:list_keys(bucket()),
+    StateJS = lists:foldl(fun(Key, Acc0) ->
+				  {ok, O1} = Client:get(bucket(), Key, 1),
+				  Value = riak_object:get_value(O1),
+				  Acc0 ++ io_lib:format("wave.getState().submitDelta({'~s':'~s'});", [Key, Value])
+			  end,
+			  "",
+			  Keys),
+    
     "$(document).ready(function() {
-        updateUI('.wfid_calendar_container');
+        updateUI('.wfid_calendar_container');"
+        ++ StateJS ++ "
         $('.day_link').addClass('hidden_link');
     });".
 	
@@ -60,21 +71,32 @@ event(Event) ->
 api_event(save, _, [Hash]) ->
     %% Update each of the keys using the bucket for the
     %% event
-    {ok, Client} = riak:client_connect('riak@127.0.0.1'),
+    Client = riak_client(),
     lists:map(fun (KV) ->
 		      save(Client, KV)
 	      end,
 	      Hash).
 
 save(Client, {Key, Value}) ->
-    io:format("~p:~p~n", [Key, Value]),
     RiakKey = list_to_binary(atom_to_list(Key)),
-    Bucket = <<"event123">>,
-    case Client:get(Bucket, RiakKey, 1) of
+    case Client:get(bucket(), RiakKey, 1) of
 	{ok, R0} ->  
 	    R1 = riak_object:update_value(R0, Value),
 	    ok = Client:put(R1, 1);
 	{error, notfound} ->
-	    R0 = riak_object:new(Bucket, RiakKey, Value),
+	    R0 = riak_object:new(bucket(), RiakKey, Value),
 	    ok = Client:put(R0, 1)
+    end.
+
+bucket() ->
+    list_to_binary(wf:path_info()).
+
+riak_client() ->
+    case wf:state_default(riak_client, undefined) of
+	undefined ->
+	    {ok, Client} = riak:client_connect('riak@127.0.0.1'),
+	    wf:state(riak_client, Client),
+	    Client;
+	Client ->
+	    Client
     end.
