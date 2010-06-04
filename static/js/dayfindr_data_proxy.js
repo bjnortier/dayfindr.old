@@ -44,17 +44,21 @@ function MockState(hash) {
     }
 
     this.submitDelta = function(delta) {
+	// Submit to the backend
+	page.save(delta);
+
 	var newKeys = getKeys(delta);
 	for (var i = 0; i < newKeys.length; ++i) {
 	    this.hash[newKeys[i]] = delta[newKeys[i]];
 	}
+
 	updateUI();
     }
 }
 
 function MockWave(viewerId, state) {
 
-    this.viewer = new MockViewer(viewerId);
+    this.viewer = null;
     this.state = new MockState(state);
     this.participants = { 'bjnortier@googlewave.com' : new MockParticipant('bjnortier@googlewave.com', 'Ben Nortier', 'http://example.com'),
                           'foo@googlewave.com' : new MockParticipant('foo@googlewave.com', 'Foo', 'http://example.com') };
@@ -62,6 +66,11 @@ function MockWave(viewerId, state) {
     this.getViewer = function() {
 	return this.viewer;
     }
+
+    this.setViewerId = function(viewerId) {
+	this.viewer = new MockViewer(viewerId);
+    }
+
 
     this.getState = function() {
 	return this.state;

@@ -57,3 +57,8 @@ a, a:visited {
 a:hover, a:active { 
     text-decoration: underline; 
 }
+
+.hidden_link {
+    text-decoration: none;
+    color: black;
+}

@@ -79,7 +79,7 @@ function createMonthTemplate(year, month) {
 	    } else {
 		var jsdate = days[i - dayOffset];
 		var dateStruct = dateFromJsDate(jsdate);
-   		template += '<td>{{{' + templatePlaceholder(dateStruct) + '}}}</td>';
+   		template += '<td id=cell_' +  templatePlaceholder(dateStruct) + '>{{{' + templatePlaceholder(dateStruct) + '}}}</td>';
 	    }
 	    --numberOfDaysLeft;
 	}
@@ -134,24 +134,61 @@ function transformState(state) {
 
 }
 
+function createDayLink(date) {
+    var onclick = 'dayClicked(' + date.year + ',' + date.month + ',' + date.day + ')';
+    return '<div><a class="day_link" href="javascript:;" onclick="' + onclick + '">' + date.day +'</a></div>';
+}
+
 function addDayLink(view, year, month) {
     
     var days = daysForMonth(year, month);
     for (var i = 0; i < days.length; ++i) {
 	var jsdate = days[i];
 	var date = dateFromJsDate(jsdate);
-
-	var onclick = 'dayClicked(' + date.year + ',' + date.month + ',' + date.day + ')';
-	var html = '<div><a href="#" onclick="' + onclick + '">' + date.day +'</a></div>';
-
-	view[templatePlaceholder(date)] = html;
+	view[templatePlaceholder(date)] = createDayLink(date);
     }
 
 }
 
+function htmlForDay(date, transformed) {
+
+    var html = "";
+    var participantIds =  transformed.datesToAttendees[date];
+    for (var k = 0; k < participantIds.length; ++k) {
+	html += '<div class="attendee">';
+	var participantId = participantIds[k];
+	html += htmlForParticipant(participantId);
+
+	/*var message = "";
+	  if ((transformed.datesToMessages[attendeesKey] != undefined) &&
+	  (transformed.datesToMessages[attendeesKey][participantId] != undefined)) {
+	  message = transformed.datesToMessages[attendeesKey][participantId];
+	  html += '<span class="comment">' + message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</span>';
+	  }
+	  
+	  if (participantId ==  wave.getViewer().getId()) {
+	  var date = JSON.parse(attendeesKey);
+	  var year = date.year;
+	  var month = date.month;
+	  var day = date.day;
+
+	  var inputId = '' + year + '_' + month + '_' + day + '_comment_input';
+	  var containerId = '' + year + '_' + month + '_' + day + '_container';
+	  var onclick = "addComment('" + inputId + "'," + year + ',' + month + ',' + day + ')';
+	  var onBubble = "toggleCommentForm('" + containerId + "')";
+	  
+	  html += '<a class="toggle-form" href="#" onclick="' + onBubble + '" />&#0133;</a>';
+	  html += '<p id="' + containerId + '" class="comment-container">';
+	  html += '<input id="' + inputId +'" class="comment" type="text" name="comment" value="' + message + '" size="10"/><input type="button" onclick="' + onclick + '" value="Ok"/>';
+	  }*/
+	html += '</div>';
+    }
+    return html;
+}
+
 function viewFromState(yearsAndMonths, wave) {
 
-    var viewerId = wave.getViewer().getId();
+    var viewerId = wave.getViewer() && wave.getViewer().getId();
     var transformed = transformState(wave.getState());
     var view = {};
 
@@ -165,44 +202,9 @@ function viewFromState(yearsAndMonths, wave) {
     // Add the attendees
     var dates = getKeys(transformed.datesToAttendees);
     for (var i = 0; i < dates.length; ++i) {
-	var attendeesKey = dates[i];
-	var participantIds =  transformed.datesToAttendees[attendeesKey];
-
-	var viewKey = templatePlaceholder(JSON.parse(attendeesKey));
-	var html = view[viewKey];
-
-	for (var k = 0; k < participantIds.length; ++k) {
-	    html += '<div class="attendee">';
-	    var participantId = participantIds[k];
-	    html += htmlForParticipant(participantId);
-
-	    /*var message = "";
-	    if ((transformed.datesToMessages[attendeesKey] != undefined) &&
-		(transformed.datesToMessages[attendeesKey][participantId] != undefined)) {
-		message = transformed.datesToMessages[attendeesKey][participantId];
-		html += '<span class="comment">' + message.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") + '</span>';
-	    }
-	    
-	    if (participantId ==  wave.getViewer().getId()) {
-		var date = JSON.parse(attendeesKey);
-		var year = date.year;
-		var month = date.month;
-		var day = date.day;
-
-		var inputId = '' + year + '_' + month + '_' + day + '_comment_input';
-		var containerId = '' + year + '_' + month + '_' + day + '_container';
-		var onclick = "addComment('" + inputId + "'," + year + ',' + month + ',' + day + ')';
-		var onBubble = "toggleCommentForm('" + containerId + "')";
-		
-		html += '<a class="toggle-form" href="#" onclick="' + onBubble + '" />&#0133;</a>';
-		html += '<p id="' + containerId + '" class="comment-container">';
-		html += '<input id="' + inputId +'" class="comment" type="text" name="comment" value="' + message + '" size="10"/><input type="button" onclick="' + onclick + '" value="Ok"/>';
-	    }*/
-	    html += '</div>';
-	}
-
-	
-	view[viewKey] = html;
+	var date = dates[i];
+	var viewKey = templatePlaceholder(JSON.parse(date));
+	view[viewKey] = view[viewKey] + htmlForDay(date, transformed);
     }
     return view;
 }
@@ -249,7 +251,7 @@ function addComment(inputId, year, month, day) {
     
     var clickedDate = createDateStruct(year, month, day);
     
-    var viewerId = wave.getViewer().getId();
+    var viewerId = wave.getViewer() && wave.getViewer().getId();
     var daysJSON = wave.getState().get(viewerId, '[]');
     var attendingDays = JSON.parse(daysJSON);
     
@@ -263,21 +265,26 @@ function addComment(inputId, year, month, day) {
 
 function dayClicked(year, month, day) {
     
-    var clickedDate = createDateStruct(year, month, day);
-    
-    var viewerId = wave.getViewer().getId();
-    var daysJSON = wave.getState().get(viewerId, '[]');
-    var attendingDays = JSON.parse(daysJSON);
+    scrollPosition = getScrollXY();
+    // Support null viewers for web version 
+    var viewerId = wave.getViewer() && wave.getViewer().getId();
+    if (viewerId) {
+	
+	var clickedDate = createDateStruct(year, month, day);
+	var daysJSON = wave.getState().get(viewerId, '[]');
+	var attendingDays = JSON.parse(daysJSON);
 
-    if (containsDate(attendingDays, clickedDate)) {
-	attendingDays = removeDate(attendingDays, clickedDate);
-    } else {
-	attendingDays.push(clickedDate);
+	if (containsDate(attendingDays, clickedDate)) {
+	    attendingDays = removeDate(attendingDays, clickedDate);
+	} else {
+	    attendingDays.push(clickedDate);
+	}
+	
+	var delta = {};
+	delta[viewerId] = JSON.stringify(attendingDays);
+	wave.getState().submitDelta(delta);
     }
-    
-    var delta = {};
-    delta[viewerId] = JSON.stringify(attendingDays);
-    wave.getState().submitDelta(delta);
+
 }
 
 function getNextYearAndMonth(year, month) {
@@ -352,11 +359,36 @@ function getGadgetHtml(wave) {
     return html;
 }
 
-
+var scrollPosition = null;
 function updateUI(id) {
     if (id !== undefined) {
 	container_id = id;
     }
     $(container_id).html(getGadgetHtml(wave));
     $('.comment-container').hide();
+
+    if (scrollPosition) {
+	window.scrollTo(scrollPosition[0], scrollPosition[1]);
+	scrollPosition = null;
+    }
+    
 }
+
+function getScrollXY() {
+    var scrOfX = 0, scrOfY = 0;
+    if( typeof( window.pageYOffset ) == 'number' ) {
+	//Netscape compliant
+	scrOfY = window.pageYOffset;
+	scrOfX = window.pageXOffset;
+    } else if( document.body && ( document.body.scrollLeft || document.body.scrollTop ) ) {
+	//DOM compliant
+	scrOfY = document.body.scrollTop;
+	scrOfX = document.body.scrollLeft;
+    } else if( document.documentElement && ( document.documentElement.scrollLeft || document.documentElement.scrollTop ) ) {
+	//IE6 standards compliant mode
+	scrOfY = document.documentElement.scrollTop;
+	scrOfX = document.documentElement.scrollLeft;
+    }
+    return [ scrOfX, scrOfY ];
+}
+
