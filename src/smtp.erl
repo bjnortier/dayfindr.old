@@ -19,7 +19,7 @@ connect(Recipient, Message) ->
     send_no_receive(Socket, "From: <invites@dayfindr.com>"),
     send_no_receive(Socket, "To: <" ++ Recipient ++ ">"),
     send_no_receive(Socket, "Date: Tue, 15 Jan 2008 16:02:43 +0000"),
-    send_no_receive(Socket, "Subject: Test message"),
+    send_no_receive(Socket, "Subject: Your dayfindr.com event"),
     send_no_receive(Socket, ""),
     send_no_receive(Socket, Message),
     send_no_receive(Socket, ""),
