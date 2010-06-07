@@ -49,7 +49,7 @@ event(create) ->
 				lists:nth(random:uniform(64), ?URLSAFE_CHARS)
 			end,
 			lists:seq(1, 20)),
-    {ok, Client} = riak:client_connect('riak@127.0.0.1'),
+    Client = riak_client_server:get(),
     OrganiserEmail = wf:q(emailAddress),
     ok = Client:put(riak_object:new(list_to_binary(EventId), <<"_description">>, wf:q(description)), 1),
     ok = Client:put(riak_object:new(list_to_binary(EventId), <<"_organiser_email">>, OrganiserEmail), 1),

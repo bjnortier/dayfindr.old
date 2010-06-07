@@ -16,7 +16,7 @@ layout() ->
 	     ]}.
 
 description() ->
-    Client = riak_client(),
+    Client = riak_client_server:get(),
     {ok, O1} = Client:get(bucket(), <<"_description">>, 1),
     {ok, O2} = Client:get(bucket(), <<"_organiser_email">>, 1),
     Description = riak_object:get_value(O1),
@@ -84,7 +84,7 @@ participant_body(SelectedName) ->
 participants() ->
     %% The participants are the keys in the bucket, but
     %% disregarding any metadata values that start with "_"
-    Client = riak_client(),
+    Client = riak_client_server:get(),
     {ok, Keys} = Client:list_keys(bucket()),
     StringKeys = lists:map(fun binary_to_list/1, Keys),
     Filtered = [X || X <- StringKeys, hd(X) /= $_],
@@ -119,7 +119,7 @@ comments() ->
 		 ]}.
 
 existing_comments() ->
-    Client = riak_client(),
+    Client = riak_client_server:get(),
     ExistingComments = case Client:get(bucket(), <<"_comments">>, 1) of
 			   {ok, O1} ->
 			       mochijson2:decode(riak_object:get_value(O1));
@@ -159,7 +159,7 @@ render_comment({struct, Props}) ->
 	    ]}.
 
 script() ->
-    Client = riak_client(),
+    Client = riak_client_server:get(),
     {ok, Keys} = Client:list_keys(bucket()),
     StateJS = lists:foldl(fun(Key, Acc0) ->
 				  {ok, O1} = Client:get(bucket(), Key, 1),
@@ -194,7 +194,7 @@ escape_quotes([], Acc) ->
 
 event(add_user) ->
     Name = wf:q(newParticipant),
-    save(riak_client(), {list_to_atom(Name), "[]"}),
+    save(riak_client_server:get(), {list_to_atom(Name), "[]"}),
     wf:state(user, Name),
     wf:update(participantPanel, participant_body(Name)),
     wf:wire( #script{ script="
@@ -216,7 +216,7 @@ event(create_comment) ->
     NewComment = {struct, [{name, Name}, 
 			   {timestamp, tuple_to_list(now())}, 
 			   {commentText, CommentText}]},
-    Client = riak_client(),
+    Client = riak_client_server:get(),
     case Client:get(bucket(), <<"_comments">>, 1) of
 	{ok, R0} ->  
 	    JSONArray = riak_object:get_value(R0),
@@ -237,7 +237,7 @@ event(Event) ->
 api_event(save, _, [Hash]) ->
     %% Update each of the keys using the bucket for the
     %% event
-    Client = riak_client(),
+    Client = riak_client_server:get(),
     lists:map(fun (KV) ->
 		      save(Client, KV)
 	      end,
@@ -286,14 +286,6 @@ save(Client, {Key, Value}) ->
 bucket() ->
     list_to_binary(wf:path_info()).
 
-riak_client() ->
-    case wf:state_default(riak_client, undefined) of
-	undefined ->
-	    {ok, Client} = riak:client_connect('riak@127.0.0.1'),
-	    wf:state(riak_client, Client),
-	    Client;
-	Client ->
-	    Client
-    end.
+
 
 

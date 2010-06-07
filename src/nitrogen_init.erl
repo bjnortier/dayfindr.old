@@ -6,4 +6,5 @@
 init() ->
     application:start(ssl),
     application:start(nprocreg),
-    application:start(nitrogen_mochiweb).
+    application:start(nitrogen_mochiweb),
+    application:start(dayfindr).
