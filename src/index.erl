@@ -49,7 +49,21 @@ event(create) ->
 			end,
 			lists:seq(1, 20)),
     {ok, Client} = riak:client_connect('riak@127.0.0.1'),
+    OrganiserEmail = wf:q(emailAddress),
     ok = Client:put(riak_object:new(list_to_binary(EventId), <<"_description">>, wf:q(description)), 1),
-    ok = Client:put(riak_object:new(list_to_binary(EventId), <<"_organiser_email">>, wf:q(emailAddress)), 1),
+    ok = Client:put(riak_object:new(list_to_binary(EventId), <<"_organiser_email">>, OrganiserEmail), 1),
+    %% Notify the creator of the event
+    URL = "http://www.dayfindr.com/event/" ++ EventId,
+    smtp:send(OrganiserEmail, create_message(OrganiserEmail, URL)),
     wf:redirect("/event/" ++ EventId).
 
+create_message(Organiser, URL) ->
+    "
+Dear " ++ Organiser ++ "
+
+Your event on dayfindr.com has been created! Send this link to the people you want to invite:
+
+" ++ URL ++ "
+
+Enjoy!
+Dayfindr.com".
