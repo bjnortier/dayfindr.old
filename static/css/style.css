@@ -59,7 +59,7 @@ a:hover, a:active {
     text-decoration: underline; 
 }
 
-.hidden_link, .hidden_link a {
+.hidden_link, .hidden_link a, .hidden_link a:hover {
     text-decoration: none;
     color: black;
 }
@@ -138,10 +138,10 @@ a:hover, a:active {
     padding-top: 2em;
 }
 
-.comment {
-    padding: 1em;
-    border-bottom: solid thin #ccc;
-} 
+.comments h3 {
+    text-align: center;
+}
+
 
 .commentArea {
     width: 400px;
@@ -153,6 +153,15 @@ a:hover, a:active {
     font-size: 0.7em;
     padding: 0px;
 }
+
+.comments .author {
+    background-color: #336;
+    color: white;
+    text-shadow: #003 1px 1px 1px;
+    padding-left: 1em;
+    border: solid thin white;
+}
+
 
 /** Header & Footer **/
 

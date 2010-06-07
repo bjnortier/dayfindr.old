@@ -74,7 +74,7 @@ participant_body(SelectedName) ->
 	       #panel {body=
 		       [
 			#label { text="" },
-			#textbox { id=newParticipant, text="" },
+			#textbox { id=newParticipant, text="", next=addButton },
 			#br{},
 			#button { id=addButton, text="Add my name", postback=add_user }
 		       ]}
@@ -193,6 +193,7 @@ escape_quotes([], Acc) ->
 event(add_user) ->
     Name = wf:q(newParticipant),
     save(riak_client(), {list_to_atom(Name), "[]"}),
+    wf:state(user, Name),
     wf:update(participantPanel, participant_body(Name)),
     wf:wire( #script{ script="
       $('.day_link').removeClass('hidden_link');
@@ -201,7 +202,6 @@ event(add_user) ->
     ok;
 event({user_selected, _Id, Name}) ->
     %% Show the links when a participant is defined
-    wf:update(addCommentPanel, add_comment_panel()),
     wf:state(user, Name),
     wf:wire( #script{ script="
       $('.day_link').removeClass('hidden_link');
