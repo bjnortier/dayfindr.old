@@ -67,12 +67,12 @@ a:hover, a:active {
 /** Create event **/
 
 .new-event .email-address {
-    width: 400px;
+    width: 450px;
     font-size: 1.5em;
 }
 
 .new-event .description {
-    width: 400px;
+    width: 450px;
     height: 70px;
     font-size: 1.1em;
 }
@@ -91,6 +91,10 @@ a:hover, a:active {
 
 .event-details .organiser {
     text-align: right;
+}
+
+.wfid_newParticipant {
+    font-size: 1.2em;
 }
 
 
@@ -144,7 +148,7 @@ a:hover, a:active {
 
 
 .commentArea {
-    width: 400px;
+    width: 450px;
     height: 70px;
 }
 
