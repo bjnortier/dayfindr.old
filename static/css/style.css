@@ -173,10 +173,16 @@ a:hover, a:active {
     padding-top: 1em;
     text-align: center;
     font-size: 3em;
-    font-family: Arial, serif;
+    /*font-family: Arial, serif;*/
     font-weight: bold;
     text-decoration: none;
     text-shadow: #ccc 1px 1px 1px;
+}
+
+#sub-header {
+    padding-top: 10px;
+    text-align: center;
+    font-weight: bold;
 }
 
 #header a {
