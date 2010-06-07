@@ -173,7 +173,8 @@ a:hover, a:active {
     padding-top: 1em;
     text-align: center;
     font-size: 3em;
-    font-family: 'Molengo', arial, serif;
+    font-family: Arial, serif;
+    font-weight: bold;
     text-decoration: none;
     text-shadow: #ccc 1px 1px 1px;
 }
