@@ -9,7 +9,7 @@ title() -> "dayfindr.com".
 layout() ->
     #container_12 { 
 	body=[
-	      #grid_10 {alpha=true, prefix=1, suffix=1, omega=true, body=body()}
+	      #grid_6 {alpha=true, prefix=3, suffix=3, omega=true, body=body()}
 	     ]}.
 
 
@@ -25,16 +25,17 @@ body() ->
 				    #is_email { text="Not a valid email address." }
 				   ]}),
     [
-     #panel{body=
+     #panel{class="new-event",
+	    body=
 	    [
 	     #h2 {text="Create a new event"},
 	     #label {text="Your email address: (only participants will see this)"}, 
-	     #textbox {id=emailAddress},
+	     #textbox {class="email-address", id=emailAddress},
 	     #br{},
 	     #label {text="Describe your event:"},
-	     #textarea {id=description},
+	     #textarea {class="description", id=description},
 	     #br{},
-	     #button { id=createButton, text="Create", postback=create }
+	     #button {id=createButton, text="Create", postback=create }
 	    ]}
     ].
 

@@ -7,6 +7,7 @@ body {
     font-family: "Lucida Grande", "Segoe UI", Tahoma, Helvetica, Arial, sans-serif; 
     font-size: 16px;
     line-height: 32px;
+    background-color: #fafafc;
 }
 
 .container_12 {
@@ -29,16 +30,16 @@ h2 {
     font-family: Arial, sans-serif;
     font-size: 1.5em;
     line-height: 1.333333em;
-    margin-top: 1.6em;
-    margin-bottom: 1.6em;
+    margin-top: 0.6em;
+    margin-bottom: 0.6em;
 }
 
 h3 {
     font-family: Arial, sans-serif;
     font-size: 1.25em;
     line-height: 1.6em;
-    margin-top: 1.333333em;
-    margin-bottom: 1.333333em;
+    margin-top: 0.333333em;
+    margin-bottom: 0.333333em;
 }
 
 p {
@@ -58,7 +59,112 @@ a:hover, a:active {
     text-decoration: underline; 
 }
 
-.hidden_link {
+.hidden_link, .hidden_link a {
     text-decoration: none;
     color: black;
 }
+
+/** Create event **/
+
+.new-event .email-address {
+    width: 400px;
+    font-size: 1.5em;
+}
+
+.new-event .description {
+    width: 400px;
+    height: 70px;
+    font-size: 1.1em;
+}
+
+
+/** Description **/
+
+.event-details {
+    padding-bottom: 1em;
+}
+
+.event-details .description {
+    border-bottom: solid thin grey;
+    margin-bottom: 0em;
+}
+
+.event-details .organiser {
+    text-align: right;
+}
+
+
+
+/** Dayfindr calendar **/
+
+.dayfindr_month_title {
+    text-align: center;
+    padding-top: 1em;
+}
+
+.dayfindr_month td, .dayfindr_month th {
+    min-width: 76px;
+    border: solid thin #ccc;
+}
+
+.dayfindr_month td {
+    padding: 5px;
+    background-color: white;
+}
+
+.dayfindr_month th {
+    color: white;
+    background-color: #336;
+}
+
+.dayfindr_month {
+    -webkit-box-shadow: 3px 3px 5px #888;
+    -webkit-border-radius: 2px;
+    -moz-box-shadow: 3px 3px 5px #888;
+    -moz-border-radius: 2px;
+    /*box-shadow: 10px 10px 5px #888; */
+
+}
+
+.add-remove-month {
+    padding-top: 1em;
+    text-align: center;
+    font-size: 0.6em;
+}
+
+
+
+/** Header & Footer **/
+
+#header {
+    padding-top: 1em;
+    text-align: center;
+    font-size: 3em;
+    font-family: 'Molengo', arial, serif;
+    text-decoration: none;
+}
+
+#header a {
+ text-decoration: none;
+}
+
+
+.header_col1 {
+    color: #336;
+}
+
+.header_col2 {
+    color: #f3ca00;
+}
+
+
+#footer {
+    text-align: center;
+    padding-top: 4em;
+    font-size: 0.8em;
+}
+
+#footer img {
+    margin-bottom: -10px;
+}
+

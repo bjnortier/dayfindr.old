@@ -79,7 +79,7 @@ function createMonthTemplate(year, month) {
 	    } else {
 		var jsdate = days[i - dayOffset];
 		var dateStruct = dateFromJsDate(jsdate);
-   		template += '<td id=cell_' +  templatePlaceholder(dateStruct) + '>{{{' + templatePlaceholder(dateStruct) + '}}}</td>';
+   		template += '<td class="date_cell" id=cell_' +  templatePlaceholder(dateStruct) + '>{{{' + templatePlaceholder(dateStruct) + '}}}</td>';
 	    }
 	    --numberOfDaysLeft;
 	}
@@ -323,7 +323,7 @@ month_names[11] = "December";
 function getHeading(yearAndMonth) {
     var year = yearAndMonth[0];
     var month = yearAndMonth[1];
-    return '<h2>' + month_names[month - 1] + ' ' + year + '</h2>';
+    return '<h2 class="dayfindr_month_title">' + month_names[month - 1] + ' ' + year + '</h2>';
 }
 
 function getGadgetHtml(wave) {
@@ -352,10 +352,18 @@ function getGadgetHtml(wave) {
 	html += Mustache.to_html(templates[i], view);
     }
 
+    html += '<div class="add-remove-month center">';
     if (numberOfMonths > 1) {
-	html += '<button title="Remove month" type="button" onclick="updateMonthsInclusive(-1)">-</button>';
+	html += 'add/remove month: ';
+    } else {
+	html += 'add month: ';
     }
     html += '<button title="Add month" type="button" onclick="updateMonthsInclusive(1)">+</button>';
+    if (numberOfMonths > 1) {
+	html += '<button title="Remove month" type="button" onclick="updateMonthsInclusive(-1)">-</button>';
+    } 
+
+    html += '</div>';
     return html;
 }
 

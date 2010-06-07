@@ -9,9 +9,9 @@ title() -> "dayfindr.com".
 layout() ->
     #container_12 { 
 	body=[
-	      #grid_10 {alpha=true, prefix=1, suffix=1, body=description()},
-	      #grid_10 {alpha=true, prefix=1, suffix=1, body=participants_panel()},
-	      #grid_10 {prefix=1, suffix=1, omega=true, body=body()}
+	      #grid_6 {alpha=true, prefix=3, suffix=3, omega=true, body=description()},
+	      #grid_8 {alpha=true, prefix=2, suffix=2, omega=true, body=participants_panel()},
+	      #grid_8 {alpha=true, prefix=2, suffix=2, omega=true, body=body()}
 	     ]}.
 
 description() ->
@@ -21,8 +21,13 @@ description() ->
     Description = riak_object:get_value(O1),
     OrganiserEmail = riak_object:get_value(O2),
     [
-     #h2{ text=Description},
-     #h3{ text="Organised by " ++ OrganiserEmail}
+     #panel {class="event-details",
+	     body=
+	     [
+	      #panel{ class="description", body=
+		      #span{text=Description, html_encode=true}},
+	      #panel{ class="organiser", body="organised by " ++ OrganiserEmail}
+	     ]}
     ].
 
 participants_panel() ->
@@ -37,37 +42,42 @@ participant_body(SelectedName) ->
     wf:wire(addButton, newParticipant, 
 	    #validate { validators=[
 				    #is_required { text="Please add your name" },
-				    #custom { text="Please choose a unique name", function=fun validate_unique/2 }
+				    #custom { text="Please choose a unique name", function=fun validate_unique/2 },
+				    #custom { text="Tags ar not allowed", function=fun validate_tags/2 }
 				   ]}),
     [
-     #h2 {text="My name is..."},
-     #radiogroup { body=
-		   %% Need to flatten the list for the correct radio grouping
-		   lists:flatten(
-		     lists:map(
-		       fun({Id, Name}) ->
-			       ElementId = list_to_atom("participat_" ++ integer_to_list(Id)),
-			       [
-				#radio { id=ElementId, text=Name, 
-					 value=io_lib:format("~p", [Id]), 
-					 checked=SelectedName =:= Name,
-					 postback={user_selected, Id, Name}}, 
-				#br{}
-			       ]
-		       end,
-		       Participants))},
-     case length(Participants) of
-	 0 -> [];
-	 _ -> #h3{text="not on the list yet:"}
-     end,
-	      
-     #panel {body=
-	     [
-	      #label { text="" },
-	      #textbox { id=newParticipant, text="" },
-	      #br{},
-	      #button { id=addButton, text="Add my name", postback=add_user }
-	     ]}
+     #grid_4 {alpha=true, 
+	      body=
+	      [
+	       #h3 {text="My name is..."},
+	       #radiogroup { body=
+			     %% Need to flatten the list for the correct radio grouping
+			     lists:flatten(
+			       lists:map(
+				 fun({Id, Name}) ->
+					 ElementId = list_to_atom("participat_" ++ integer_to_list(Id)),
+					 [
+					  #radio { id=ElementId, text=Name, 
+						   value=io_lib:format("~p", [Id]), 
+						   checked=SelectedName =:= Name,
+						   postback={user_selected, Id, Name}}, 
+					  #br{}
+					 ]
+				 end,
+				 Participants))}
+	      ]},
+     #grid_4 {omega=true,
+	      body=
+	      [
+	       #h3{text="not on the list yet:"},
+	       #panel {body=
+		       [
+			#label { text="" },
+			#textbox { id=newParticipant, text="" },
+			#br{},
+			#button { id=addButton, text="Add my name", postback=add_user }
+		       ]}
+	      ]}
     ].
 
 participants() ->
@@ -100,7 +110,7 @@ script() ->
     StateJS = lists:foldl(fun(Key, Acc0) ->
 				  {ok, O1} = Client:get(bucket(), Key, 1),
 				  Value = riak_object:get_value(O1),
-				  Acc0 ++ io_lib:format("wave.getState().submitDelta({'~s':'~s'});", [Key, Value])
+				  Acc0 ++ io_lib:format("wave.getState().submitDelta({'~s':'~s'});", [Key, escape_quotes(Value)])
 			  end,
 			  "",
 			  Keys),
@@ -109,12 +119,26 @@ script() ->
         updateUI('.wfid_calendar_container');"
         ++ StateJS ++ "
         $('.day_link').addClass('hidden_link');
+        $('.add-remove-month').hide();
     });".
+
+escape_quotes(String) ->
+    escape_quotes(String, "").
+
+escape_quotes([Hd|Rest], Acc) ->
+    case Hd of
+	%% Use 39 instead of $' because it screws up syntax highlighting in emacs
+	39 -> escape_quotes(Rest, Acc ++ "\\'"); 
+        C -> escape_quotes(Rest, Acc ++ [C])
+    end;
+escape_quotes([], Acc) ->
+    Acc.
 	
 event(add_user) ->
     Name = wf:q(newParticipant),
+    io:format("add_user: ~p", [Name]),
     save(riak_client(), {list_to_atom(Name), "[]"}),
-    wf:replace(participantPanel, participant_body(Name)),
+    wf:update(participantPanel, participant_body(Name)),
     wf:wire( #script{ script="
       $('.day_link').removeClass('hidden_link');
       wave.setViewerId('" ++ Name ++ "');
@@ -124,6 +148,7 @@ event({user_selected, _Id, Name}) ->
     %% Show the links when a participant is defined
     wf:wire( #script{ script="
       $('.day_link').removeClass('hidden_link');
+      $('.add-remove-month').show();
       wave.setViewerId('" ++ Name ++ "');
     "});
 event(Event) ->
@@ -143,6 +168,14 @@ validate_unique(_Tag, Value) ->
     case lists:keyfind(Value, 2, participants()) of
 	false -> true;
 	_ -> false
+    end.
+
+validate_tags(_Tag, Value) ->
+    ContainsLT = lists:member($<, Value),
+    ContainsGT = lists:member($>, Value),
+    if
+	ContainsLT or ContainsGT -> false;
+	true -> true
     end.
 	     
 

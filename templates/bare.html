@@ -1,32 +1,38 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-  <title>[[[page:title()]]]</title>
-  <script src='/nitrogen/jquery.js' type='text/javascript' charset='utf-8'></script>
-  <script src='/nitrogen/jquery-ui.js' type='text/javascript' charset='utf-8'></script>
-<!--     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.4.1/jquery.min.js"></script> -->
-<!--     <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.0/jquery-ui.min.js"></script> -->
-  <script src='/nitrogen/livevalidation.js' type='text/javascript' charset='utf-8'></script>
-  <script src='/nitrogen/nitrogen.js' type='text/javascript' charset='utf-8'></script>
-  <script src='/nitrogen/bert.js' type='text/javascript' charset='utf-8'></script>
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>[[[page:title()]]]</title>
+    <script src='/nitrogen/jquery.js' type='text/javascript' charset='utf-8'></script>
+    <script src='/nitrogen/livevalidation.js' type='text/javascript' charset='utf-8'></script>
+    <script src='/nitrogen/nitrogen.js' type='text/javascript' charset='utf-8'></script>
+    <script src='/nitrogen/bert.js' type='text/javascript' charset='utf-8'></script>
 
-  <!-- dayfindr Javascript -->
-  <script src='/js/dayfindr_data_proxy.js' type='text/javascript' charset='utf-8'></script>
-  <script src='/js/mustache.js' type='text/javascript' charset='utf-8'></script>
-  <script src='/js/dayfindr_ui.js' type='text/javascript' charset='utf-8'></script>
+    <!-- dayfindr Javascript -->
+    <script src='/js/dayfindr_data_proxy.js' type='text/javascript' charset='utf-8'></script>
+    <script src='/js/mustache.js' type='text/javascript' charset='utf-8'></script>
+    <script src='/js/dayfindr_ui.js' type='text/javascript' charset='utf-8'></script>
 
+    <link href='http://fonts.googleapis.com/css?family=Molengo' rel='stylesheet' type='text/css'
 
-  <link rel="stylesheet" href="/nitrogen/jquery-ui/jquery.ui.all.css" type="text/css" media="screen" charset="utf-8" />
-<!--     <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8/themes/smoothness/jquery-ui.css" type="text/css" media="screen" charset="utf-8" /> -->
-  <link rel="stylesheet" href="/nitrogen/nitrogen.css" />
-  <link rel="stylesheet" href="/css/style.css" />
-</head>
-<body>
-[[[page:layout()]]]
-<script>
-[[[page:script()]]]
-[[[script]]]
-</script>
-</body>
+    <link rel="stylesheet" href="/nitrogen/nitrogen.css" />
+    <link rel="stylesheet" href="/css/style.css" />
+  </head>
+  <body>
+    <div id="header">
+      <a href="/">
+	<span class="header_col1">day</span><span class="header_col2">findr</span><span class="header_col1">.com</span>
+      </a>
+    </div>
+    [[[page:layout()]]]
+    <div class="center" id="footer">
+      A <a href="http://www.1011ltd.com/">1011 Ltd</a> Project. Powered by 
+      <a href="http://nitrogenproject.com/">Nitrogen</a>
+      <img src="http://nitrogenproject.com/images/MiniSpaceman.png"/>
+    </div>
+    <script>
+      [[[page:script()]]]
+      [[[script]]]
+    </script>
+  </body>
 </html>
