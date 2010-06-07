@@ -175,6 +175,7 @@ a:hover, a:active {
     font-size: 3em;
     font-family: 'Molengo', arial, serif;
     text-decoration: none;
+    text-shadow: #ccc 1px 1px 1px;
 }
 
 #header a {
