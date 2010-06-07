@@ -7,7 +7,7 @@ send(Recipient, Message) ->
     spawn(fun () -> connect(Recipient, Message) end).
 
 connect(Recipient, Message) ->
-    {ok, Socket} = ssl:connect("smtp.gmail.com", 465, [{active, false}], 1000),
+    {ok, Socket} = ssl:connect("smtp.gmail.com", 465, [{active, false}], 5000),
     recv(Socket),
     send_and_receive(Socket, "HELO localhost"),
     send_and_receive(Socket, "AUTH LOGIN"),
@@ -37,7 +37,7 @@ send_and_receive(Socket, Data) ->
     recv(Socket).
 
 recv(Socket) ->
-    case ssl:recv(Socket, 0, 1000) of
+    case ssl:recv(Socket, 0, 5000) of
 	{ok, _} -> ok; %error_logger:info_msg("INFO: ~p~n", [Msg]);
 	{error, Reason} -> error_logger:error_msg("ERROR: ~p~n", [Reason])
     end.
