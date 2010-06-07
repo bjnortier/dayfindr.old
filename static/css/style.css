@@ -170,7 +170,6 @@ a:hover, a:active {
 /** Header & Footer **/
 
 #header {
-    padding-top: 1em;
     text-align: center;
     font-size: 3em;
     /*font-family: Arial, serif;*/
@@ -201,13 +200,13 @@ a:hover, a:active {
 #header .beta {
     color: red;
     font-size: 0.3em;
-    vertical-align:super;
+    vertical-align:top;
 }
 
 
 #footer {
     text-align: center;
-    padding-top: 4em;
+    padding-top: 2em;
     font-size: 0.8em;
 }
 
