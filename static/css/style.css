@@ -198,6 +198,12 @@ a:hover, a:active {
     color: #f3ca00;
 }
 
+#header .beta {
+    color: red;
+    font-size: 0.3em;
+    vertical-align:super;
+}
+
 
 #footer {
     text-align: center;
