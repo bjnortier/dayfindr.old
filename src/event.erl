@@ -9,11 +9,21 @@ title() -> "dayfindr.com".
 layout() ->
     #container_12 { 
 	body=[
+	      #grid_10 {alpha=true, prefix=1, suffix=1, body=description()},
 	      #grid_10 {alpha=true, prefix=1, suffix=1, body=participants_panel()},
 	      #grid_10 {prefix=1, suffix=1, omega=true, body=body()}
 	     ]}.
 
-
+description() ->
+    Client = riak_client(),
+    {ok, O1} = Client:get(bucket(), <<"_description">>, 1),
+    {ok, O2} = Client:get(bucket(), <<"_organiser_email">>, 1),
+    Description = riak_object:get_value(O1),
+    OrganiserEmail = riak_object:get_value(O2),
+    [
+     #h2{ text=Description},
+     #h3{ text="Organised by " ++ OrganiserEmail}
+    ].
 
 participants_panel() ->
     #panel {id=participantPanel,
@@ -30,10 +40,7 @@ participant_body(SelectedName) ->
 				    #custom { text="Please choose a unique name", function=fun validate_unique/2 }
 				   ]}),
     [
-     case length(Participants) of
-	 0 -> [];
-	 _ -> #label { text="I've been here before:" }
-     end,
+     #h2 {text="My name is..."},
      #radiogroup { body=
 		   %% Need to flatten the list for the correct radio grouping
 		   lists:flatten(
@@ -49,12 +56,17 @@ participant_body(SelectedName) ->
 			       ]
 		       end,
 		       Participants))},
+     case length(Participants) of
+	 0 -> [];
+	 _ -> #h3{text="not on the list yet:"}
+     end,
+	      
      #panel {body=
 	     [
-	      #label { text="I'm new:" },
+	      #label { text="" },
 	      #textbox { id=newParticipant, text="" },
 	      #br{},
-	      #button { id=addButton, text="Ok", postback=add_user }
+	      #button { id=addButton, text="Add my name", postback=add_user }
 	     ]}
     ].
 

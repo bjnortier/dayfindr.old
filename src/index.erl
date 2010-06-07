@@ -14,17 +14,42 @@ layout() ->
 
 
 body() -> 
+
+    wf:wire(createButton, description, 
+	    #validate { validators=[
+				    #is_required { text="Please describe your event" }
+				   ]}),
+
+    wf:wire(createButton, emailAddress, 
+	    #validate { validators=[
+				    #is_email { text="Not a valid email address." }
+				   ]}),
     [
-     #panel{id="calendar_container", body="placeholder"}
+     #panel{body=
+	    [
+	     #h2 {text="Create a new event"},
+	     #label {text="Your email address: (only participants will see this)"}, 
+	     #textbox {id=emailAddress},
+	     #br{},
+	     #label {text="Describe your event:"},
+	     #textarea {id=description},
+	     #br{},
+	     #button { id=createButton, text="Create", postback=create }
+	    ]}
     ].
 
-script() ->
-    "$(document).ready(function() {
-        updateUI('.wfid_calendar_container');
-    });".
+
+-define(URLSAFE_CHARS, "abcdefghijklmnopqrstuvwxyzuABCDEFGHIJKLMNOPQRSTUVWXYZU1234567890-_").
 	
-event(click) ->
-    wf:replace(button, #panel { 
-        body="You clicked the button!", 
-        actions=#effect { effect=highlight }
-    }).
+event(create) ->
+    {A1,A2,A3} = now(),
+    random:seed(A1, A2, A3),
+    EventId = lists:map(fun(_X) ->
+				lists:nth(random:uniform(64), ?URLSAFE_CHARS)
+			end,
+			lists:seq(1, 20)),
+    {ok, Client} = riak:client_connect('riak@127.0.0.1'),
+    ok = Client:put(riak_object:new(list_to_binary(EventId), <<"_description">>, wf:q(description)), 1),
+    ok = Client:put(riak_object:new(list_to_binary(EventId), <<"_organiser_email">>, wf:q(emailAddress)), 1),
+    wf:redirect("/event/" ++ EventId).
+
