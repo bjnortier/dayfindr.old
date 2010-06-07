@@ -132,7 +132,27 @@ a:hover, a:active {
     font-size: 0.6em;
 }
 
+/** Comments **/
 
+.comments {
+    padding-top: 2em;
+}
+
+.comment {
+    padding: 1em;
+    border-bottom: solid thin #ccc;
+} 
+
+.commentArea {
+    width: 400px;
+    height: 70px;
+}
+
+.comments .timeago {
+    text-align: right;
+    font-size: 0.7em;
+    padding: 0px;
+}
 
 /** Header & Footer **/
 
@@ -145,7 +165,7 @@ a:hover, a:active {
 }
 
 #header a {
- text-decoration: none;
+    text-decoration: none;
 }
 
 

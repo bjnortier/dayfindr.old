@@ -11,7 +11,8 @@ layout() ->
 	body=[
 	      #grid_6 {alpha=true, prefix=3, suffix=3, omega=true, body=description()},
 	      #grid_8 {alpha=true, prefix=2, suffix=2, omega=true, body=participants_panel()},
-	      #grid_8 {alpha=true, prefix=2, suffix=2, omega=true, body=body()}
+	      #grid_8 {alpha=true, prefix=2, suffix=2, omega=true, body=body()},
+	      #grid_6 {alpha=true, prefix=3, suffix=3, omega=true, body=comments()}
 	     ]}.
 
 description() ->
@@ -104,6 +105,57 @@ body() ->
      #panel{id="calendar_container", body="placeholder"}
     ].
 
+comments() ->
+    #panel {class="comments",
+	    body=[
+		  #h3 {text="Comments"},
+		  #panel {id=existingComments,
+			  body=existing_comments()},
+		  #panel {id=addCommentPanel, 
+			  body=add_comment_panel()
+			 }
+		 ]}.
+
+existing_comments() ->
+    Client = riak_client(),
+    ExistingComments = case Client:get(bucket(), <<"_comments">>, 1) of
+			   {ok, O1} ->
+			       mochijson2:decode(riak_object:get_value(O1));
+			   _ -> 
+			       []
+		       end,
+    lists:map(fun render_comment/1, ExistingComments).
+
+add_comment_panel() ->
+    wf:wire(addCommentButton, commentArea, 
+     	    #validate { validators=
+     			[
+     			 #is_required { text="Empty comments are not allowed" }, 
+     			 #custom { text="Tags are not allowed", function=fun validate_tags/2 },
+			 #custom { text="Please choose your name at the top", function=fun validate_user_selected/2 }
+     			]}),
+    [
+     #label {text="Your comment:"},
+     #textarea {class="commentArea", id=commentArea},
+     #br{},
+     #button {id=addCommentButton, text="Create comment", postback=create_comment }
+    ].
+    
+%% Stored in the form
+%% {Author, Timestamp, Text}
+render_comment({struct, Props}) ->
+    Author = proplists:get_value(<<"name">>, Props),
+    Timestamp = list_to_tuple(proplists:get_value(<<"timestamp">>, Props)),
+    CommentText = proplists:get_value(<<"commentText">>, Props),
+    #panel {class="comment",
+	    body=
+	    [
+	     #panel{class="author", body=Author},
+
+	     #panel{body=#span{text=CommentText, html_encode=true}},
+	     #panel{class="timeago", body=httpd_util:rfc1123_date(calendar:now_to_local_time(Timestamp))}
+	    ]}.
+
 script() ->
     Client = riak_client(),
     {ok, Keys} = Client:list_keys(bucket()),
@@ -134,9 +186,12 @@ escape_quotes([Hd|Rest], Acc) ->
 escape_quotes([], Acc) ->
     Acc.
 	
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ----------- Events ---------- %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 event(add_user) ->
     Name = wf:q(newParticipant),
-    io:format("add_user: ~p", [Name]),
     save(riak_client(), {list_to_atom(Name), "[]"}),
     wf:update(participantPanel, participant_body(Name)),
     wf:wire( #script{ script="
@@ -146,11 +201,33 @@ event(add_user) ->
     ok;
 event({user_selected, _Id, Name}) ->
     %% Show the links when a participant is defined
+    wf:update(addCommentPanel, add_comment_panel()),
+    wf:state(user, Name),
     wf:wire( #script{ script="
       $('.day_link').removeClass('hidden_link');
       $('.add-remove-month').show();
       wave.setViewerId('" ++ Name ++ "');
     "});
+event(create_comment) ->
+    Name = wf:state(user),
+    CommentText = wf:q(commentArea), 
+    NewComment = {struct, [{name, Name}, 
+			   {timestamp, tuple_to_list(now())}, 
+			   {commentText, CommentText}]},
+    Client = riak_client(),
+    case Client:get(bucket(), <<"_comments">>, 1) of
+	{ok, R0} ->  
+	    JSONArray = riak_object:get_value(R0),
+	    Comments = mochijson2:decode(JSONArray),
+	    NewComments = Comments ++ [NewComment],
+	    Encoded = mochijson2:encode(NewComments),
+	    R1 = riak_object:update_value(R0, Encoded),
+	    ok = Client:put(R1, 1);
+	{error, notfound} ->
+	    R0 = riak_object:new(bucket(), <<"_comments">>, mochijson2:encode([NewComment])),
+	    ok = Client:put(R0, 1)
+    end,
+     wf:update(existingComments, existing_comments());
 event(Event) ->
     io:format("~p~n", [Event]).
 
@@ -163,6 +240,11 @@ api_event(save, _, [Hash]) ->
 		      save(Client, KV)
 	      end,
 	      Hash).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ----------- Validators ---------- %%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 validate_unique(_Tag, Value) ->
     case lists:keyfind(Value, 2, participants()) of
@@ -177,6 +259,14 @@ validate_tags(_Tag, Value) ->
 	ContainsLT or ContainsGT -> false;
 	true -> true
     end.
+
+validate_user_selected(_Tag, _Value) ->
+    wf:state(user) /= undefined.
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% ----------- Utils ---------- %%
+%%%%%%%%%%%%%%%%%%%%%%d%%%%%%%%%%%
 	     
 
 save(Client, {Key, Value}) ->
@@ -202,3 +292,9 @@ riak_client() ->
 	Client ->
 	    Client
     end.
+
+iso_8601_fmt(NowTime) ->
+    DateTime = calendar:now_to_local_time(NowTime),
+    {{Year,Month,Day},{Hour,Min,Sec}} = DateTime,
+    io_lib:format("~4.10.0B-~2.10.0B-~2.10.0B ~2.10.0B:~2.10.0B:~2.10.0B",
+        [Year, Month, Day, Hour, Min, Sec]).
