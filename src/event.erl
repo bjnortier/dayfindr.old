@@ -88,7 +88,9 @@ participants() ->
     {ok, Keys} = Client:list_keys(bucket()),
     StringKeys = lists:map(fun binary_to_list/1, Keys),
     Filtered = [X || X <- StringKeys, hd(X) /= $_],
-    to_participants(Filtered).
+    Participants = to_participants(Filtered),
+    wf:state(participants, Participants),
+    Participants.
 
 to_participants(Keys) ->
     to_participants(Keys, [], 1).
@@ -247,7 +249,8 @@ api_event(save, _, [Hash]) ->
 
 
 validate_unique(_Tag, Value) ->
-    case lists:keyfind(Value, 2, participants()) of
+    Participants = wf:state_default(participants, []),
+    case lists:keyfind(Value, 2, Participants) of
 	false -> true;
 	_ -> false
     end.
@@ -293,8 +296,4 @@ riak_client() ->
 	    Client
     end.
 
-iso_8601_fmt(NowTime) ->
-    DateTime = calendar:now_to_local_time(NowTime),
-    {{Year,Month,Day},{Hour,Min,Sec}} = DateTime,
-    io_lib:format("~4.10.0B-~2.10.0B-~2.10.0B ~2.10.0B:~2.10.0B:~2.10.0B",
-        [Year, Month, Day, Hour, Min, Sec]).
+
